@@ -63,7 +63,8 @@ class Yolo():
         return self.bbox_set
 
 
-def get_trajectory(bbox, fps, w, h):
+def get_trajectory(bbox, fps, w, h, hoop):
+    center_h, radius_h = box_to_ball(hoop)
     ball_trajs = [[]] #二維陣列記錄每顆球的軌跡
     ball_latest_frame = [] #記錄每顆球最新的frame
     ball_latest_radius = [] #記錄每顆球最新的半徑
@@ -91,15 +92,16 @@ def get_trajectory(bbox, fps, w, h):
                     v1 = np.array(list(ball_latest_center[j]))
                     v2 = np.array(list(center))
                     dist = np.sqrt(np.sum(np.square(v1 - v2)))
-                    if gap_frame <= int(fps/5) and dist < 1.2 * gap_frame * ball_latest_radius[j]: #連續消失的frame數<=12且距離在frame*1.2r內
+                    if gap_frame <= int(fps/4) and dist < 1.2 * gap_frame * ball_latest_radius[j]: #連續消失的frame數<=12且距離在frame*1.2r內
                         #判斷為同一顆球
                         find_corresponding_ball = True
                         break
-                    # 10/10要來加上和籃框位置接近與否的判斷!!
-                    elif gap_frame > 10 and gap_frame < int(fps) and dist < 5 * ball_latest_radius[j]: #就算連續消失超過1/5秒(但小於1秒) 若距離在5*r內就把軌跡接上(希望解決球進籃框時detection失效的問題)
-                        #判斷為同一顆球
-                        find_corresponding_ball = True
-                        break
+                    v3 = np.array(list(center_h))
+                    if np.sqrt(np.sum(np.square(v2 - v3))) < 2*(r+radius_h): #如果球中心和籃框中心的距離<2*(球半徑+框半徑) 開起防止球進籃框detection失效的措施
+                        if gap_frame > int(fps/4) and gap_frame < int(fps) and dist < 5 * ball_latest_radius[j]: #就算連續消失超過1/5秒(但小於1秒) 若距離在5*r內就把軌跡接上(希望解決球進籃框時detection失效的問題)
+                            #判斷為同一顆球
+                            find_corresponding_ball = True
+                            break
                 
             if find_corresponding_ball:
                 ball_trajs[j].append(b.copy())
@@ -122,7 +124,7 @@ def get_trajectory(bbox, fps, w, h):
     rm = []
     for i in range(len(ball_trajs)):
         xmax, xmin, ymax, ymin = ball_extreme_pts[i]
-        if len(ball_trajs[i]) < 10:
+        if len(ball_trajs[i]) < int(fps/6):
             rm.append(i)
         elif (xmax-xmin)*(ymax-ymin)/(w*h) < 0.003:
             rm.append(i)
@@ -182,7 +184,7 @@ def refine_trajectory(ball_trajs, frame_list):
     return ball_trajs  
 
 
-def released_detector(ball_trajs, arms, frame_num):
+def release_detector(ball_trajs, arms, frame_num):
     index_arm = 0
     index_ball = [0]*len(ball_trajs)
     for i in range(frame_num):

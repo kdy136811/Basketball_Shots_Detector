@@ -10,13 +10,13 @@ from random import randint
 from PIL import Image
 
 if __name__ == '__main__':
-    vid = cv2.VideoCapture("videos/input/test0.mp4")
+    vid = cv2.VideoCapture("videos/input/test1.mp4")
     
     success, frame = vid.read()
     bbox = cv2.selectROI(frame, False)
     cv2.destroyAllWindows()
     print(bbox)
-
+"""
     tracker = cv2.TrackerCSRT_create()
     multiTracker = cv2.MultiTracker_create()
     multiTracker.add(tracker, frame, bbox)
@@ -50,3 +50,4 @@ if __name__ == '__main__':
     #                            save_all=True, append_img=img[1:], optimize=False, duration=40, loop=0)
     vid.release()
     cv2.destroyAllWindows()
+"""
