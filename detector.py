@@ -21,9 +21,10 @@ class Yolo():
         import cv2
         m = Darknet(cfgfile)
 
-        m.print_network()
+        #m.print_network()
         m.load_weights(weightfile)
         print('Loading weights from %s... Done!' % (weightfile))
+        print('Detecting Ball and Hoop Position from Yolo...')
 
         if use_cuda:
             m.cuda()
@@ -92,7 +93,7 @@ def get_trajectory(bbox, fps, w, h, hoop):
                     v1 = np.array(list(ball_latest_center[j]))
                     v2 = np.array(list(center))
                     dist = np.sqrt(np.sum(np.square(v1 - v2)))
-                    if gap_frame <= int(fps/4) and dist < 1.2 * gap_frame * ball_latest_radius[j]: #連續消失的frame數<=12且距離在frame*1.2r內
+                    if gap_frame <= int(fps/4) and dist < 1.2 * gap_frame * ball_latest_radius[j]: #連續消失的frame數<=15且距離在frame*1.2r內
                         #判斷為同一顆球
                         find_corresponding_ball = True
                         break

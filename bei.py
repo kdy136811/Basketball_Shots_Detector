@@ -65,7 +65,7 @@ class BEI():
                 start_h = int((self.bei_size[0]-rsz_h)/2)
                 rst[start_h : start_h+rsz_h, start_w : start_w+rsz_w] = cv2.resize(crop, (rsz_w, rsz_h))
 
-            cv2.imwrite(filepath + '/rsz_' + str(key_frame) + '.jpg', rst)
+            #cv2.imwrite(filepath + '/rsz_' + str(key_frame) + '.jpg', rst)
             #cv2.imwrite(filepath + '/' + str(key_frame) + '.jpg', img)
 
 

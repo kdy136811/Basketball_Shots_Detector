@@ -19,6 +19,7 @@ import time
 from fn import getTime
 import cv2
 import json
+import time
 
 from pPose_nms import pose_nms, write_json
 
@@ -43,18 +44,22 @@ class AlphaPose():
         save_path = os.path.join(args.outputpath, 'AlphaPose_'+ntpath.basename(self.videofile).split('.')[0]+'.mp4')
         self.writer = DataWriter(args.save_video, save_path, cv2.VideoWriter_fourcc(*'DIVX'), self.fps, self.frameSize).start()
         self.results = list()
+        self.total1 = 0
+        self.total2 = 0
 
     def pose_estimation(self, pose_model):
         batchSize = args.posebatch
         for i in range(self.data_loader.length()):
             with torch.no_grad(): #不計算導數以此減少運算量 可用在model evaluating時 將inference的code放在其中
+                t1 = time.time()
                 (inps, orig_img, im_name, boxes, scores, pt1, pt2) = self.det_processor.read()
+                
                 if orig_img is None:
                     break
                 if boxes is None or boxes.nelement() == 0:
                     self.writer.save(None, None, None, None, None, orig_img, im_name.split('/')[-1])
                     continue
-
+                t2 = time.time()
                 # Pose Estimation
                 datalen = inps.size(0)
                 leftover = 0
@@ -70,6 +75,9 @@ class AlphaPose():
 
                 hm = hm.cpu().data
                 self.writer.save(boxes, scores, hm, pt1, pt2, orig_img, im_name.split('/')[-1])
+                t3 = time.time()
+                self.total1 += (t2-t1)
+                self.total2 += (t3-t2)
 
 
     def run(self):
